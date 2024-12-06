@@ -11,10 +11,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
@@ -28,11 +30,20 @@ import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import com.jayanthr.spendisense.ui.theme.zinc
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.constraintlayout.compose.Dimension
+import com.jayanthr.spendisense.data.model.ExpenseEntity
+import com.jayanthr.spendisense.viewmodel.HomeViewModel
+import com.jayanthr.spendisense.viewmodel.HomeViewModelFactory
+import com.jayanthr.spendisense.widget.ExpenseTextView
 
 
 @Composable
 fun HomeScreen(){
+    val viewModel : HomeViewModel =
+        HomeViewModelFactory(LocalContext.current)
+            .create(HomeViewModel::class.java)
+
     Surface (modifier = Modifier.fillMaxSize()) {
         ConstraintLayout(modifier = Modifier.fillMaxSize()) {
             val (nameRow, list, card, topBar) = createRefs()
@@ -55,8 +66,8 @@ fun HomeScreen(){
                         end.linkTo(parent.end)
                     }) {
                 Column {
-                    Text(text = "Good Afternoon!", fontSize = 16.sp, color = Color.White)
-                    Text(text = "Jayanth", fontSize = 20.sp, fontWeight = FontWeight.Bold , color = Color.White)
+                    ExpenseTextView(text = "Good Afternoon!", fontSize = 16.sp, color = Color.White)
+                    ExpenseTextView(text = "Jayanth", fontSize = 20.sp, fontWeight = FontWeight.Bold , color = Color.White)
                 }
                 Image(
                     painter = painterResource(id = R.drawable.ic_notifications),
@@ -65,29 +76,38 @@ fun HomeScreen(){
 
                 )
             }
-            CardItem(modifier = Modifier
-                .constrainAs(card) {
-                    top.linkTo(nameRow.bottom)
+
+            val state = viewModel.expenses.collectAsState(initial = emptyList())
+            val expenses = viewModel.getTotalExpense(state.value)
+            val income = viewModel.getTotalIncome(state.value)
+            val balance = viewModel.getBalance(state.value)
+
+            CardItem(
+                modifier = Modifier
+                    .constrainAs(card) {
+                        top.linkTo(nameRow.bottom)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                    }, balance = balance, income = income, expenses = expenses,
+            )
+
+            TransactionList(
+                modifier = Modifier.fillMaxSize().constrainAs(list) {
+                    top.linkTo(card.bottom)
                     start.linkTo(parent.start)
+                    bottom.linkTo(parent.bottom)
                     end.linkTo(parent.end)
-                })
+                    height = Dimension.fillToConstraints
 
-            TransactionList(modifier = Modifier.fillMaxSize().constrainAs(list){
-              top.linkTo(card.bottom)
-              start.linkTo(parent.start)
-                bottom.linkTo(parent.bottom)
-              end.linkTo(parent.end)
-                height = Dimension.fillToConstraints
-
-            })
-
-
+                },
+                list = state.value
+            )
         }
     }
 }
 
 @Composable
-fun CardItem( modifier: Modifier){
+fun CardItem(modifier: Modifier, balance: String, income: String, expenses: String){
     Column ( modifier = modifier
         .padding(16.dp)
         .fillMaxWidth()
@@ -102,10 +122,10 @@ fun CardItem( modifier: Modifier){
             .fillMaxWidth()
             .weight(1f)) {
             Column (modifier = Modifier.align(Alignment.CenterStart)) {
-                Text(text = "Total's Spending", fontSize = 16.sp, color = Color.White)
-                Text(
-                    text = "₹ 25",
-                    fontSize = 20.sp,
+                ExpenseTextView(text = "Total's Spending", fontSize = 14.sp, color = Color.White, fontWeight = FontWeight.ExtraLight)
+                ExpenseTextView(
+                    text = expenses,
+                    fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White,
                 )
@@ -123,14 +143,14 @@ fun CardItem( modifier: Modifier){
             CardRowItem(
                 modifier = Modifier.align(Alignment.CenterStart),
                 title = "Remaining Allowance",
-                amount = "₹ 21",
+                amount = income,
                 image = R.drawable.ic_rupee,
             )
 
             CardRowItem(
                 modifier = Modifier.align(Alignment.CenterEnd),
-                title = "Monthly Goal",
-                amount = "₹ 5000",
+                title = "Total Balance",
+                amount = balance,
                 image = R.drawable.ic_rupee,
             )
         }
@@ -139,25 +159,29 @@ fun CardItem( modifier: Modifier){
 }
 
 @Composable
-fun TransactionList(modifier: Modifier){
-    Column (modifier = modifier.padding(16.dp)){
-        Box(modifier = Modifier.fillMaxWidth()){
-            Text( text = "Recent Transaction",
-                fontSize = 20.sp)
-            Text(
-                text = "See All",
-                fontSize = 16.sp,
-                modifier = Modifier.align(Alignment.CenterEnd)
-            )
-
+fun TransactionList(modifier: Modifier, list: List<ExpenseEntity>){
+    LazyColumn (modifier = modifier.padding(16.dp)){
+        item {
+            Box(modifier = Modifier.fillMaxWidth()){
+                ExpenseTextView( text = "Recent Transaction",
+                    fontSize = 20.sp)
+                ExpenseTextView(
+                    text = "See All",
+                    fontSize = 16.sp,
+                    modifier = Modifier.align(Alignment.CenterEnd)
+                )
+            }
         }
-        TransactionItem(
-            title = "Shopping",
-            amount = "- $25",
-            icon = R.drawable.ic_notifications,
-            date = "Today",
-            color = Color.Red,
-        )
+        items(list) { item ->
+            TransactionItem(
+                title = item.title,
+                amount = item.amount.toString(),
+                icon = R.drawable.ic_rupee,
+                date = item.date.toString(),
+                color = if(item.type == "Income") Color.Green else Color.Red ,
+            )
+        }
+
 
     }
 
@@ -169,7 +193,7 @@ fun CardRowItem(modifier: Modifier, title: String, amount: String, image: Int){
         Row {
             Image( painter = painterResource( id = image), contentDescription = null, modifier = Modifier.size(24.dp))
             Spacer(modifier = Modifier.size(5.dp))
-            Text(
+            ExpenseTextView(
                 text = title,
                 fontSize = 14.sp,
                 color = Color.White,
@@ -177,10 +201,11 @@ fun CardRowItem(modifier: Modifier, title: String, amount: String, image: Int){
                 modifier = Modifier.padding( top = 4.dp)
             )
         }
-        Text( text = amount,
+        ExpenseTextView( text = amount,
             color = Color.White,
-            fontSize = 20.sp,
-            modifier = Modifier.padding( start = 7.dp)
+            fontSize = 22.sp,
+            modifier = Modifier.padding( start = 7.dp),
+
 
         )
     }
@@ -199,11 +224,16 @@ Box(modifier = Modifier.fillMaxWidth().padding( vertical = 8.dp))
 
 
         Column {
-            Text(text = title, fontSize = 16.sp)
-            Text(text = date, fontSize = 16.sp)
+            ExpenseTextView(text = title, fontSize = 16.sp, fontWeight = FontWeight.Medium)
+            ExpenseTextView(text = date, fontSize = 16.sp)
         }
     }
-    Text( text = amount , fontSize = 20.sp , color = color, modifier = Modifier.align(Alignment.CenterEnd))
+    ExpenseTextView( text = amount ,
+        fontSize = 20.sp ,
+        color = color,
+        modifier = Modifier.align(Alignment.CenterEnd),
+        fontWeight = FontWeight.SemiBold
+    )
 }
 
 }
