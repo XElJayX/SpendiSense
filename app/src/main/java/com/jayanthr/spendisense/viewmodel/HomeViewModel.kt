@@ -1,4 +1,5 @@
 package com.jayanthr.spendisense.viewmodel
+import com.jayanthr.spendisense.R
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
@@ -46,7 +47,25 @@ class HomeViewModel(dao: ExpenseDao) : ViewModel(){
         }
         return "₹ ${total}"
     }
+
+    fun getItemIcon(item : ExpenseEntity): Int{
+        if(item.category == "Food"){
+            return R.drawable.ic_food
+        }
+        else if(item.category == "Travel"){
+            return R.drawable.ic_gas_station
+        }
+        else if(item.category == "Shopping"){
+            return R.drawable.ic_shopping
+        }
+        else if (item.category == "Salary")
+        {
+            return R.drawable.ic_salary
+        }
+        return R.drawable.ic_notifications
+    }
 }
+
 
 
 class HomeViewModelFactory(private val context: Context) : ViewModelProvider.Factory{
