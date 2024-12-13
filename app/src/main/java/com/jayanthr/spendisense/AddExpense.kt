@@ -41,6 +41,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.jayanthr.spendisense.data.model.ExpenseEntity
 import com.jayanthr.spendisense.viewmodel.AddExpenseViewModel
 import com.jayanthr.spendisense.viewmodel.AddExpenseViewModelFactory
@@ -49,7 +51,7 @@ import kotlinx.coroutines.launch
 
 
 @Composable
-fun AddExpense(){
+fun AddExpense(navController: NavController){
 
     val viewModel = AddExpenseViewModelFactory(LocalContext.current)
         .create(AddExpenseViewModel::class.java)
@@ -102,7 +104,9 @@ fun AddExpense(){
 
             }, onAddExpenseClick ={
                 coroutineScope.launch{
-                    viewModel.addExpense(it)
+                    if(viewModel.addExpense(it)){
+                        navController.popBackStack()
+                    }
                 }
             } )
         }
@@ -275,5 +279,5 @@ fun ExpenseDropDown(listOfItems: List<String>, onItemSelected:(item: String) -> 
 @Composable
 @Preview
 fun AddExpensePreview(){
-    AddExpense()
+    AddExpense(rememberNavController())
 }
