@@ -1,4 +1,4 @@
-package com.jayanthr.spendisense
+package com.jayanthr.spendisense.feature.home
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -36,6 +36,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.jayanthr.spendisense.R
 import com.jayanthr.spendisense.data.model.ExpenseEntity
 import com.jayanthr.spendisense.viewmodel.HomeViewModel
 import com.jayanthr.spendisense.viewmodel.HomeViewModelFactory
@@ -194,7 +195,7 @@ fun TransactionList(modifier: Modifier, list: List<ExpenseEntity>, viewModel: Ho
                 title = item.title,
                 amount = item.amount.toString(),
                 icon = viewModel.getItemIcon(item),
-                date = item.date.toString(),
+                date = item.date,
                 color = if(item.type == "Income") Color.Green else Color.Red ,
             )
         }

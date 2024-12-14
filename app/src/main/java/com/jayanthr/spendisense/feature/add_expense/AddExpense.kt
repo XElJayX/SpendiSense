@@ -1,4 +1,4 @@
-package com.jayanthr.spendisense
+package com.jayanthr.spendisense.feature.add_expense
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -21,6 +21,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -43,6 +44,8 @@ import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.jayanthr.spendisense.R
+import com.jayanthr.spendisense.Utils.Utils
 import com.jayanthr.spendisense.data.model.ExpenseEntity
 import com.jayanthr.spendisense.viewmodel.AddExpenseViewModel
 import com.jayanthr.spendisense.viewmodel.AddExpenseViewModelFactory
@@ -170,7 +173,11 @@ fun DataForm(modifier: Modifier, onAddExpenseClick: (model: ExpenseEntity)-> Uni
             onValueChange = {}, modifier = Modifier
             .fillMaxWidth()
             .clickable{ dateDialogVisibility.value = true},
-            enabled = false)
+            enabled = false,
+            colors = OutlinedTextFieldDefaults.colors(
+                disabledBorderColor = Color.Black,
+                disabledTextColor = Color.Black
+            ))
         Spacer(modifier = Modifier.size(8.dp))
 
         //DROP DOWN

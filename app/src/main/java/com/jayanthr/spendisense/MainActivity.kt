@@ -13,8 +13,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.navigation.compose.rememberNavController
-import com.jayanthr.spendisense.sms.SmsReceiver
+import com.jayanthr.spendisense.feature.sms.SmsReceiver
 import com.jayanthr.spendisense.ui.theme.SpendiSenseTheme
 
 class MainActivity : ComponentActivity() {
@@ -26,11 +25,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
 
-        if (hasSmsPermissions()) {
-            registerSmsReceiver()
-        } else {
-            requestSmsPermissions()
-        }
+        if (!hasSmsPermissions()) requestSmsPermissions()
 
         enableEdgeToEdge()
         setContent {
@@ -59,13 +54,6 @@ class MainActivity : ComponentActivity() {
             arrayOf(Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_SMS),
             SMS_PERMISSION_REQUEST_CODE
         )
-    }
-
-
-    private fun registerSmsReceiver() {
-        smsReceiver = SmsReceiver() // Initialize the receiver
-        val intentFilter = IntentFilter("android.provider.Telephony.SMS_RECEIVED")
-        registerReceiver(smsReceiver, intentFilter) // Register the receiver with the intent filter
     }
 
     override fun onDestroy() {
