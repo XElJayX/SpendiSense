@@ -78,7 +78,7 @@ object Utils {
 
         when {
             "credited" in message -> {
-                transactionType = "Credit"
+                transactionType = "Income"
                 receiver = creditReceiverRegex.find(message)?.value
             }
             "Balance" in message -> {
@@ -86,7 +86,7 @@ object Utils {
                 receiver = "Balance"
             }
             else -> {
-                transactionType = "Debit"
+                transactionType = "Expense"
                 receiver = debitReceiverRegex.find(message)?.value
             }
         }
@@ -96,4 +96,43 @@ object Utils {
             "type" to transactionType,
             "receiver" to receiver)
     }
+
+    val bankHeaders = hashSetOf(
+        // Public Sector Banks
+        "SBIINB", "SBIOTP", "SBIBNK",
+        "BARODA", "BOBTXN",
+        "PNBSMS", "PNBTXN",
+        "CANBNK", "CANTXN",
+        "UBINOT", "UBINBX",
+        "INDBNK", "INDBIX",
+        "CBIOTP", "CBITXN",
+        "BKIDTX", "BOIMSG",
+        "UCOBNK", "UCOTXN",
+        "IOBNOT", "IOBTXN",
+
+        // Private Sector Banks
+        "HDFCBK", "HDFCTX",
+        "ICICIB", "ICICIN",
+        "AXISBK", "AXISNB",
+        "KOTAKB", "KOTAKN",
+        "INDUSB", "INDUSN",
+        "YESBNK", "YESTXN",
+        "IDFCBK", "IDFCNB",
+        "FEDBNK", "FEDTXN",
+        "RBLBNK", "RBLTXT",
+        "SIBTXT", "SIBMSG",
+
+        // Regional Rural Banks & Others
+        "JKBANK",
+        "BANDHN",
+        "KVBBNK",
+        "TMBBNK",
+        "DHLBNK",
+        "ESAFBNK",
+
+        // Payment Platforms
+        "PYTMNB", "PAYTM",
+        "AIRBNK",
+        "FINOBN"
+    )
 }

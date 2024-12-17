@@ -1,17 +1,35 @@
 package com.jayanthr.spendisense.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import androidx.lifecycle.ViewModelProvider
+import com.jayanthr.spendisense.data.ExpenseDataBase
+import com.jayanthr.spendisense.data.dao.ExpenseDao
+import com.jayanthr.spendisense.data.model.ExpenseEntity
 
 // ViewModel for holding SMS details
-class SmsViewModel : ViewModel() {
-    // Mutable state flow to hold the SMS data
-    private val _smsDetails = MutableStateFlow<String?>(null) // Use String for now, will update when parsing
-    val smsDetails: StateFlow<String?> = _smsDetails // Expose it as StateFlow for the UI to observe
+class SmsViewModel(val dao: ExpenseDao) : ViewModel() {
 
-    // Method to update SMS details
-    fun updateSmsDetails(smsContent: String) {
-        _smsDetails.value = smsContent
+    suspend fun addExpenseSMS(expenseEntity: ExpenseEntity): Boolean {
+        return try {
+            dao.insertExpense(expenseEntity)
+            true
+        } catch (ex: Throwable) {
+            false
+        }
     }
+
+    class SmsViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(SmsViewModel::class.java)) {
+                val dao: ExpenseDao = ExpenseDataBase.getDatabase(context).expenseDao()
+                @Suppress("UNCHECKED_CAST")
+                return SmsViewModel(dao) as T
+            }
+            throw IllegalArgumentException("Unknown ViewModel class")
+        }
+    }
+
+
+
 }
