@@ -45,7 +45,7 @@ fun TransactionList(navController: NavController) {
     Surface(modifier = Modifier.fillMaxSize()) {
 
         ConstraintLayout(modifier = Modifier.fillMaxSize()) {
-            val (nameRow, list, wrapper, topBar, add) = createRefs()
+            val (nameRow, list, wrapper, topBar) = createRefs()
             Image(
                 painter = painterResource(id = R.drawable.namebar_homepage),
                 contentDescription = null,
@@ -123,7 +123,7 @@ fun TransactionList(navController: NavController) {
 
                 }
                     .padding(top = 48.dp),
-                list = state.value, viewModel = viewModel, navController = navController
+                list = state.value, viewModel = viewModel
             )
 
         }
@@ -132,7 +132,7 @@ fun TransactionList(navController: NavController) {
 
 
 @Composable
-fun TransactionView(modifier: Modifier, list : List<ExpenseEntity>, viewModel: HomeViewModel, navController: NavController){
+fun TransactionView(modifier: Modifier, list : List<ExpenseEntity>, viewModel: HomeViewModel){
     LazyColumn (modifier = modifier.padding(24.dp)) {
 
         items(list) { item ->

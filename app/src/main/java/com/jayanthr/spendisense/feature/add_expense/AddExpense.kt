@@ -50,9 +50,6 @@ import com.jayanthr.spendisense.data.model.ExpenseEntity
 import com.jayanthr.spendisense.viewmodel.AddExpenseViewModel
 import com.jayanthr.spendisense.viewmodel.AddExpenseViewModelFactory
 import com.jayanthr.spendisense.widget.ExpenseTextView
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 
