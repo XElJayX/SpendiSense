@@ -105,16 +105,16 @@ fun HomeScreen(navController: NavController){
                     height = Dimension.fillToConstraints
 
                 },
-                list = state.value, viewModel = viewModel
+                list = state.value, viewModel = viewModel, navController = navController
             )
             Image(painter = painterResource(R.drawable.ic_add), contentDescription = null ,
                 modifier = Modifier
                     .constrainAs(add){
                         bottom.linkTo(parent.bottom)
-//                        start.linkTo(parent.start)
+                        start.linkTo(parent.start)
                         end.linkTo(parent.end)
                     }
-                    .size(48.dp)
+                    .size(100.dp)
                     .clip(CircleShape)
                     .clickable{
                         navController.navigate("/addExpense")
@@ -177,7 +177,7 @@ fun CardItem(modifier: Modifier, balance: String, income: String, expenses: Stri
 }
 
 @Composable
-fun TransactionList(modifier: Modifier, list: List<ExpenseEntity>, viewModel: HomeViewModel){
+fun TransactionList(modifier: Modifier, list: List<ExpenseEntity>, viewModel: HomeViewModel, navController: NavController){
     LazyColumn (modifier = modifier.padding(16.dp)){
         item {
             Box(modifier = Modifier.fillMaxWidth()){
@@ -187,6 +187,10 @@ fun TransactionList(modifier: Modifier, list: List<ExpenseEntity>, viewModel: Ho
                     text = "See All",
                     fontSize = 16.sp,
                     modifier = Modifier.align(Alignment.CenterEnd)
+                        .clickable{
+                            navController.navigate("/transaction")
+                        }
+
                 )
             }
         }

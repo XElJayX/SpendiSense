@@ -87,6 +87,9 @@ fun AddExpense(navController: NavController){
                     painter = painterResource(id = R.drawable.chevron_left),
                     contentDescription = null,
                     modifier = Modifier.align(Alignment.CenterStart)
+                        .clickable{
+                            navController.navigate("/home")
+                        }
                 )
                 ExpenseTextView(
                     text = "Add Expense",

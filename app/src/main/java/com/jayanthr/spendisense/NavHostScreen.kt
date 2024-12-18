@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -24,6 +25,7 @@ import androidx.navigation.compose.rememberNavController
 import com.jayanthr.spendisense.feature.add_expense.AddExpense
 import com.jayanthr.spendisense.feature.home.HomeScreen
 import com.jayanthr.spendisense.feature.stats.StatsScreen
+import com.jayanthr.spendisense.feature.transaction_list.TransactionList
 import com.jayanthr.spendisense.ui.theme.zinc
 
 @Composable
@@ -38,7 +40,10 @@ fun NavHostScreen(){
                 navController = navController,
                 items = listOf(
                     NavItem(route = "/home", icon = R.drawable.ic_home),
-                    NavItem(route = "/stats", icon = R.drawable.ic_stats)
+                    NavItem(route = "/stats", icon = R.drawable.ic_stats),
+                    NavItem(route = "/transaction", icon = R.drawable.ic_rupee),
+                    NavItem(route = "/addExpense", icon = R.drawable.ic_user)
+
                 )
             )
         }
@@ -54,6 +59,13 @@ fun NavHostScreen(){
             bottomBarVisibility = false
             AddExpense(navController)
         }
+
+
+         composable(route = "/transaction"){
+          bottomBarVisibility = true
+          TransactionList(navController)
+          }
+
 
         composable(route = "/stats"){
             bottomBarVisibility = true
@@ -108,4 +120,10 @@ fun NavigationBottomBar(
             )
         }
     }
+}
+
+@Preview
+@Composable
+fun Preview(){
+    NavHostScreen()
 }
