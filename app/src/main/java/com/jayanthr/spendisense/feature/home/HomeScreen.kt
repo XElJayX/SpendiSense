@@ -247,7 +247,7 @@ Box(modifier = Modifier.fillMaxWidth().padding( vertical = 8.dp))
 
         Column {
             ExpenseTextView(text = title, fontSize = 16.sp, fontWeight = FontWeight.Medium)
-            ExpenseTextView(text = date, fontSize = 16.sp)
+            ExpenseTextView(text = date, fontSize = 16.sp, color = Color.Gray)
         }
     }
     ExpenseTextView( text = amount ,

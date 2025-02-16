@@ -11,7 +11,7 @@ import java.util.Locale
 object Utils {
 
     fun formatDateToHumanReadableFormat(dateInMillis: Long): String{
-        val dateFormatter = SimpleDateFormat("dd/mm/yyyy", Locale.getDefault())
+        val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
         return dateFormatter.format(dateInMillis)
     }
 

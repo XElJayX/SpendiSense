@@ -5,6 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.jayanthr.spendisense.Utils.Utils
 import com.jayanthr.spendisense.data.dao.ExpenseDao
 import com.jayanthr.spendisense.data.model.ExpenseEntity
 import kotlinx.coroutines.CoroutineScope
@@ -35,7 +36,7 @@ abstract class ExpenseDataBase : RoomDatabase(){
                 fun initBasicData(context: Context){
                     CoroutineScope(Dispatchers.IO).launch{
                         val dao = getDatabase(context).expenseDao()
-                        dao.insertExpense(ExpenseEntity(1,"Salary",5000.0,System.currentTimeMillis().toString(), "Salary", "Income" ))
+                        dao.insertExpense(ExpenseEntity(1,"Salary",5000.0, Utils.formatDateToHumanReadableFormat(System.currentTimeMillis()), "Salary", "Income" ))
                         dao.insertExpense(ExpenseEntity(2,"Food",160.0,System.currentTimeMillis().toString(), "Food", "Expense"))
                         dao.insertExpense(ExpenseEntity(3,"Petrol",1500.0,System.currentTimeMillis().toString(),"Petrol", "Expense"))
                         dao.insertExpense(ExpenseEntity(4,"Netflix",299.0,System.currentTimeMillis().toString(),"Subscription", "Expense"))
