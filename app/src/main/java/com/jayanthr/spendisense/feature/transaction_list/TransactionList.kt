@@ -123,7 +123,7 @@ fun TransactionList(navController: NavController) {
                         horizontalArrangement = Arrangement.Center
                     ) {
                         ExpenseTextView(
-                            "Total Expenses",
+                            text = if (selectedOption.value == "Expense") "Total Expenses" else "Total Income",
                             fontSize = 14.sp,
                             color = Color.Gray
                         )
@@ -135,15 +135,13 @@ fun TransactionList(navController: NavController) {
                         horizontalArrangement = Arrangement.Center
                     ) {
                         ExpenseTextView(
-                            text = expenses,
+                            text = if (selectedOption.value == "Expense") expenses else income,
                             fontSize = 28.sp,
                             color = Color.Black,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(top = 6.dp, start = 6.dp)
                         )
                     }
-
-                    // ✅ Fix: Ensure this updates the UI
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -151,7 +149,7 @@ fun TransactionList(navController: NavController) {
                         horizontalArrangement = Arrangement.Center
                     ) {
                         ExpenseIncomeToggle(selectedOption.value) { option ->
-                            selectedOption.value = option // ✅ Trigger recomposition
+                            selectedOption.value = option
                         }
                     }
                 }

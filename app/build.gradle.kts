@@ -51,7 +51,12 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation("androidx.core:core-splashscreen:1.0.1")
     implementation("androidx.constraintlayout:constraintlayout-compose:1.1.0")
+    implementation("org.pytorch:pytorch_android:2.1.0")
+    implementation("com.facebook.soloader:soloader:0.10.5")  // ← MUST ADD THIS
+    implementation ("com.google.code.gson:gson:2.10.1")  // For JSON parsing
+
     implementation(libs.androidx.constraintlayout)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

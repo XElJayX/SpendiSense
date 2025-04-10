@@ -10,59 +10,123 @@ import com.jayanthr.spendisense.Utils.Utils.bankHeaders
 import com.jayanthr.spendisense.Utils.Utils.parseSMS
 import com.jayanthr.spendisense.data.ExpenseDataBase
 import com.jayanthr.spendisense.data.model.ExpenseEntity
+import com.jayanthr.spendisense.ner.NERHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-
 class SmsReceiver : BroadcastReceiver() {
-    override fun onReceive(context: Context, intent: Intent) {
+    private lateinit var nerHelper: NERHelper
 
-        // Check if the received intent is for an SMS
+    override fun onReceive(context: Context, intent: Intent) {
+        // Initialize NER helper
+        nerHelper = NERHelper(context)
+
         if (intent.action == Telephony.Sms.Intents.SMS_RECEIVED_ACTION) {
             val messages = Telephony.Sms.Intents.getMessagesFromIntent(intent)
-            val sender = messages[0].displayOriginatingAddress.toString().substring(3,)
-            val content = parseSMS(messages[0].displayMessageBody)
+            val sender = messages[0].displayOriginatingAddress?.substring(3) ?: ""
+            val messageBody = messages[0].displayMessageBody ?: ""
 
-            //SANITY CHECK
-            if (bankHeaders.contains(sender)){
-                Log.d("SmsReceiver", "SENDER SUCESSS CHECK")
+            // Log original SMS
+            Log.d("SmsReceiver/NER", "Received SMS from $sender: $messageBody")
+
+            // Preprocess SMS into tokens (simple whitespace tokenizer for now)
+            val tokens = messageBody.split("\\s+".toRegex()).filter { it.isNotBlank() }
+
+            // Process with NER model
+            val nerTags = try {
+                nerHelper.predict(tokens)
+            } catch (e: Exception) {
+                Log.e("SmsReceiver/NER", "NER processing failed", e)
+                emptyList()
+            }
+
+            // Log raw NER output
+            Log.d("SmsReceiver/NER", "Raw NER Output:")
+            nerTags.forEach { (word, tag) ->
+                Log.d("SmsReceiver/NER", "$word -> $tag")
+            }
+
+            // Extract entities from NER tags
+            val nerEntities = extractEntities(nerTags)
+            Log.d("SmsReceiver/NER", "Extracted Entities: $nerEntities")
+
+            // Create expense model combining both NER and regex parsing
+            val parsedContent = parseSMS(messageBody)
             val model = ExpenseEntity(
-                null,
-                title = content["receiver"].toString(),
-                amount = content["amount"]?.toDouble() ?: 0.0,
-                date = content["date"].toString(),
-                category = "food",
-                type = content["type"].toString(),
+                id = null,
+                title = nerEntities["merchant"] ?: parsedContent["receiver"].toString(),
+                amount = nerEntities["amount"]?.toDoubleOrNull()
+                    ?: parsedContent["amount"]?.toDouble() ?: 0.0,
+                date = nerEntities["date"] ?: parsedContent["date"].toString(),
+                category = "food", // TODO: Add category prediction
+                type = "Expense"
             )
-            addTransaction(context,model)
+
+            // SANITY CHECK
+            if (!bankHeaders.contains(sender)) {
+                Log.d("SmsReceiver", "Processing non-bank SMS")
+                addTransaction(context, model)
+            } else {
+                Log.d("SmsReceiver", "Ignoring bank SMS from $sender")
             }
-            else{
-                Log.d("SmsReceiver", "SENDER FAILED CHECK")
-            }
-
-            Log.d("SmsReceiver", "SMS received from $sender: $content")
-
-
-
         }
     }
 
-    fun addTransaction(context: Context, model: ExpenseEntity){
+    private fun extractEntities(tags: List<Pair<String, String>>): Map<String, String> {
+        val entities = mutableMapOf<String, String>()
+        val currentEntity = StringBuilder()
+        var currentEntityType: String? = null
+
+        // Improved entity extraction that handles multi-word entities
+        for ((word, tag) in tags) {
+            when {
+                tag.startsWith("B-") -> {
+                    // If we were building an entity, save it first
+                    if (currentEntityType != null && currentEntity.isNotEmpty()) {
+                        entities[currentEntityType!!] = currentEntity.toString().trim()
+                    }
+                    // Start new entity
+                    currentEntityType = tag.substring(2).lowercase()
+                    currentEntity.clear()
+                    currentEntity.append(word)
+                }
+                tag.startsWith("I-") -> {
+                    // Continue building current entity if it matches
+                    val entityType = tag.substring(2).lowercase()
+                    if (entityType == currentEntityType) {
+                        currentEntity.append(" ").append(word)
+                    }
+                }
+                else -> {
+                    // Save current entity if any
+                    if (currentEntityType != null && currentEntity.isNotEmpty()) {
+                        entities[currentEntityType!!] = currentEntity.toString().trim()
+                        currentEntityType = null
+                        currentEntity.clear()
+                    }
+                }
+            }
+        }
+
+        // Save any remaining entity
+        if (currentEntityType != null && currentEntity.isNotEmpty()) {
+            entities[currentEntityType!!] = currentEntity.toString().trim()
+        }
+
+        return entities
+    }
+
+    private fun addTransaction(context: Context, model: ExpenseEntity) {
         val dao = ExpenseDataBase.getDatabase(context).expenseDao()
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                    dao.insertExpense(model)
-                    Log.d("SmsReceiver", "TRANSACTION ADDED")
-                    Toast.makeText(context, "TRANSACTION ADDED", Toast.LENGTH_SHORT).show()
-
-
+                dao.insertExpense(model)
+                Log.d("SmsReceiver", "Transaction added successfully")
+                Toast.makeText(context, "Transaction recorded", Toast.LENGTH_SHORT).show()
             } catch (ex: Exception) {
-
-                ex.printStackTrace()
-
+                Log.e("SmsReceiver", "Error saving transaction", ex)
             }
         }
     }
 }
-
