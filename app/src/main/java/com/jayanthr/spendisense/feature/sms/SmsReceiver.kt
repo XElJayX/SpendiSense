@@ -6,6 +6,7 @@ import android.content.Intent
 import android.provider.Telephony
 import android.util.Log
 import android.widget.Toast
+import com.jayanthr.spendisense.Classifier.TransactionClassifier
 import com.jayanthr.spendisense.Utils.Utils.bankHeaders
 import com.jayanthr.spendisense.Utils.Utils.parseSMS
 import com.jayanthr.spendisense.data.ExpenseDataBase
@@ -17,23 +18,23 @@ import kotlinx.coroutines.launch
 
 class SmsReceiver : BroadcastReceiver() {
     private lateinit var nerHelper: NERHelper
+    private lateinit var classifier: TransactionClassifier
+
 
     override fun onReceive(context: Context, intent: Intent) {
-        // Initialize NER helper
-        nerHelper = NERHelper(context)
-
         if (intent.action == Telephony.Sms.Intents.SMS_RECEIVED_ACTION) {
             val messages = Telephony.Sms.Intents.getMessagesFromIntent(intent)
             val sender = messages[0].displayOriginatingAddress?.substring(3) ?: ""
             val messageBody = messages[0].displayMessageBody ?: ""
 
-            // Log original SMS
-            Log.d("SmsReceiver/NER", "Received SMS from $sender: $messageBody")
+            // Init NER & Classifier
+            nerHelper = NERHelper(context)
+            classifier = TransactionClassifier(context)
 
-            // Preprocess SMS into tokens (simple whitespace tokenizer for now)
+            // Preprocess SMS
             val tokens = messageBody.split("\\s+".toRegex()).filter { it.isNotBlank() }
 
-            // Process with NER model
+            // NER prediction
             val nerTags = try {
                 nerHelper.predict(tokens)
             } catch (e: Exception) {
@@ -41,29 +42,48 @@ class SmsReceiver : BroadcastReceiver() {
                 emptyList()
             }
 
-            // Log raw NER output
             Log.d("SmsReceiver/NER", "Raw NER Output:")
             nerTags.forEach { (word, tag) ->
                 Log.d("SmsReceiver/NER", "$word -> $tag")
             }
 
-            // Extract entities from NER tags
             val nerEntities = extractEntities(nerTags)
             Log.d("SmsReceiver/NER", "Extracted Entities: $nerEntities")
 
-            // Create expense model combining both NER and regex parsing
+            // Parse fallback values
             val parsedContent = parseSMS(messageBody)
+
+            // Fallback-safe values
+            val merchant = nerEntities["merchant_name"] ?: parsedContent["receiver"].toString()
+            val amount = nerEntities["transaction_amount"]?.toDoubleOrNull()
+                ?: parsedContent["amount"]?.toDouble() ?: 0.0
+            val date = nerEntities["transaction_datetime"] ?: parsedContent["date"].toString()
+
+
+            // 🔥 Predict category using classifier
+            val category = try {
+                classifier.classifyTransaction(
+                    merchantName = merchant,
+                    transactionAmount = amount.toFloat(),
+                    timestamp = System.currentTimeMillis()
+                )
+            } catch (e: Exception) {
+                Log.e("SmsReceiver/Classifier", "Prediction failed", e)
+                "uncategorized"
+            }
+
+            // Log category
+            Log.d("SmsReceiver/Classifier", "Predicted Category: $category")
+
             val model = ExpenseEntity(
                 id = null,
-                title = nerEntities["merchant"] ?: parsedContent["receiver"].toString(),
-                amount = nerEntities["amount"]?.toDoubleOrNull()
-                    ?: parsedContent["amount"]?.toDouble() ?: 0.0,
-                date = nerEntities["date"] ?: parsedContent["date"].toString(),
-                category = "food", // TODO: Add category prediction
+                title = merchant,
+                amount = amount,
+                date = date,
+                category = category,
                 type = "Expense"
             )
 
-            // SANITY CHECK
             if (!bankHeaders.contains(sender)) {
                 Log.d("SmsReceiver", "Processing non-bank SMS")
                 addTransaction(context, model)
@@ -72,6 +92,7 @@ class SmsReceiver : BroadcastReceiver() {
             }
         }
     }
+
 
     private fun extractEntities(tags: List<Pair<String, String>>): Map<String, String> {
         val entities = mutableMapOf<String, String>()

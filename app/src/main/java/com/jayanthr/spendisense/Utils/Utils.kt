@@ -67,7 +67,7 @@ object Utils {
 
         val amountRegex = "(\\d{1,3})(,\\d{2,3})*(\\.\\d{2})".toRegex()
         val creditReceiverRegex = "from (.+?)\\.".toRegex()
-        val debitReceiverRegex = "to (.+?)\\.|at (.+?)\\.".toRegex()
+        val debitReceiverRegex = "(?:to|at) (.+?)\\.".toRegex()
         val dateRegex = "(\\d{2}-.{3}-\\d{4})|(\\d{2}-\\d{2}-\\d{2})".toRegex()
 
         var amount = amountRegex.find(message)?.value?.replace(",","")
