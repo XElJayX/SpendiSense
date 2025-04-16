@@ -1,8 +1,10 @@
 package com.jayanthr.spendisense.viewmodel
+import com.jayanthr.spendisense.R
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.jayanthr.spendisense.Utils.Utils
 import com.jayanthr.spendisense.data.ExpenseDataBase
 import com.jayanthr.spendisense.data.dao.ExpenseDao
 import com.jayanthr.spendisense.data.model.ExpenseEntity
@@ -24,29 +26,47 @@ class HomeViewModel(dao: ExpenseDao) : ViewModel(){
         }
 
 
-        return "₹ ${total}"
+        return "₹ ${Utils.formatToDecimal(total)}"
     }
 
     fun getTotalExpense(List: List<ExpenseEntity>) : String {
-        var total = 0.0
+        var totalExpense = 0.0
         List.forEach {
             if (it.type == "Expense") {
-                total += it.amount
+                totalExpense += it.amount
             }
         }
-        return "₹ ${total}"
+        return "₹ ${Utils.formatToDecimal(totalExpense)}"
     }
 
     fun getTotalIncome(List: List<ExpenseEntity>) : String{
-        var total= 0.0
+        var totalIncome = 0.0
         List.forEach {
             if(it.type == "Income"){
-                total+= it.amount
+                totalIncome+= it.amount
             }
         }
-        return "₹ ${total}"
+        return "₹ ${Utils.formatToDecimal(totalIncome)}"
+    }
+
+    fun getItemIcon(item : ExpenseEntity): Int{
+        if(item.category == "Food"){
+            return R.drawable.ic_food
+        }
+        else if(item.category == "Travel"){
+            return R.drawable.ic_gas_station
+        }
+        else if(item.category == "Shopping"){
+            return R.drawable.ic_shopping
+        }
+        else if (item.category == "Salary")
+        {
+            return R.drawable.ic_salary
+        }
+        return R.drawable.ic_notifications
     }
 }
+
 
 
 class HomeViewModelFactory(private val context: Context) : ViewModelProvider.Factory{

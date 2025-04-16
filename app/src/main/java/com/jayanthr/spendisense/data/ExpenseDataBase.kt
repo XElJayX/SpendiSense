@@ -5,6 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.jayanthr.spendisense.Utils.Utils
 import com.jayanthr.spendisense.data.dao.ExpenseDao
 import com.jayanthr.spendisense.data.model.ExpenseEntity
 import kotlinx.coroutines.CoroutineScope
@@ -20,6 +21,7 @@ abstract class ExpenseDataBase : RoomDatabase(){
     companion object{
         const val DATABASE_NAME = "expense_database"
 
+
         @JvmStatic
         fun getDatabase(context: Context): ExpenseDataBase{
             return Room.databaseBuilder(
@@ -28,16 +30,16 @@ abstract class ExpenseDataBase : RoomDatabase(){
                 DATABASE_NAME
             ).addCallback(object : RoomDatabase.Callback(){
                 override fun onCreate(db: SupportSQLiteDatabase){
-                super.onCreate(db)
-                initBasicData((context))}
+                    super.onCreate(db)
+                    initBasicData((context))}
 
                 fun initBasicData(context: Context){
                     CoroutineScope(Dispatchers.IO).launch{
                         val dao = getDatabase(context).expenseDao()
-                        dao.insertExpense(ExpenseEntity(1,"Salary",5000.0,System.currentTimeMillis(), "Salary", "Income" ))
-                        dao.insertExpense(ExpenseEntity(2,"Food",160.0,System.currentTimeMillis(), "Food", "Expense"))
-                        dao.insertExpense(ExpenseEntity(3,"Petrol",1500.0,System.currentTimeMillis(),"Petrol", "Expense"))
-                        dao.insertExpense(ExpenseEntity(4,"Netflix",299.0,System.currentTimeMillis(),"Subscription", "Expense"))
+                        dao.insertExpense(ExpenseEntity(1,"Salary",5000.0, Utils.formatDateToHumanReadableFormat(System.currentTimeMillis()), "Salary", "Income" ))
+                        dao.insertExpense(ExpenseEntity(2,"Food",160.0,System.currentTimeMillis().toString(), "Food", "Expense"))
+                        dao.insertExpense(ExpenseEntity(3,"Petrol",1500.0,System.currentTimeMillis().toString(),"Petrol", "Expense"))
+                        dao.insertExpense(ExpenseEntity(4,"Netflix",299.0,System.currentTimeMillis().toString(),"Subscription", "Expense"))
                     }
                 }
             }).build()

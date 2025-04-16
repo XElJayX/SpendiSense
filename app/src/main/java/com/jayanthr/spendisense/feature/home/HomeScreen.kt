@@ -1,7 +1,8 @@
-package com.jayanthr.spendisense
+package com.jayanthr.spendisense.feature.home
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -32,6 +34,9 @@ import com.jayanthr.spendisense.ui.theme.zinc
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.constraintlayout.compose.Dimension
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.jayanthr.spendisense.R
 import com.jayanthr.spendisense.data.model.ExpenseEntity
 import com.jayanthr.spendisense.viewmodel.HomeViewModel
 import com.jayanthr.spendisense.viewmodel.HomeViewModelFactory
@@ -39,14 +44,14 @@ import com.jayanthr.spendisense.widget.ExpenseTextView
 
 
 @Composable
-fun HomeScreen(){
+fun HomeScreen(navController: NavController){
     val viewModel : HomeViewModel =
         HomeViewModelFactory(LocalContext.current)
             .create(HomeViewModel::class.java)
 
     Surface (modifier = Modifier.fillMaxSize()) {
         ConstraintLayout(modifier = Modifier.fillMaxSize()) {
-            val (nameRow, list, card, topBar) = createRefs()
+            val (nameRow, list, card, topBar, add) = createRefs()
             Image(
                 painter = painterResource(id = R.drawable.namebar_homepage),
                 contentDescription = null,
@@ -100,7 +105,20 @@ fun HomeScreen(){
                     height = Dimension.fillToConstraints
 
                 },
-                list = state.value
+                list = state.value, viewModel = viewModel, navController = navController
+            )
+            Image(painter = painterResource(R.drawable.ic_add), contentDescription = null ,
+                modifier = Modifier
+                    .constrainAs(add){
+                        bottom.linkTo(parent.bottom)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                    }
+                    .size(100.dp)
+                    .clip(CircleShape)
+                    .clickable{
+                        navController.navigate("/addExpense")
+                    }
             )
         }
     }
@@ -159,7 +177,7 @@ fun CardItem(modifier: Modifier, balance: String, income: String, expenses: Stri
 }
 
 @Composable
-fun TransactionList(modifier: Modifier, list: List<ExpenseEntity>){
+fun TransactionList(modifier: Modifier, list: List<ExpenseEntity>, viewModel: HomeViewModel, navController: NavController){
     LazyColumn (modifier = modifier.padding(16.dp)){
         item {
             Box(modifier = Modifier.fillMaxWidth()){
@@ -169,6 +187,10 @@ fun TransactionList(modifier: Modifier, list: List<ExpenseEntity>){
                     text = "See All",
                     fontSize = 16.sp,
                     modifier = Modifier.align(Alignment.CenterEnd)
+                        .clickable{
+                            navController.navigate("/transaction")
+                        }
+
                 )
             }
         }
@@ -176,8 +198,8 @@ fun TransactionList(modifier: Modifier, list: List<ExpenseEntity>){
             TransactionItem(
                 title = item.title,
                 amount = item.amount.toString(),
-                icon = R.drawable.ic_rupee,
-                date = item.date.toString(),
+                icon = viewModel.getItemIcon(item),
+                date = item.date,
                 color = if(item.type == "Income") Color.Green else Color.Red ,
             )
         }
@@ -225,7 +247,7 @@ Box(modifier = Modifier.fillMaxWidth().padding( vertical = 8.dp))
 
         Column {
             ExpenseTextView(text = title, fontSize = 16.sp, fontWeight = FontWeight.Medium)
-            ExpenseTextView(text = date, fontSize = 16.sp)
+            ExpenseTextView(text = date, fontSize = 16.sp, color = Color.Gray)
         }
     }
     ExpenseTextView( text = amount ,
@@ -241,5 +263,5 @@ Box(modifier = Modifier.fillMaxWidth().padding( vertical = 8.dp))
 @Composable
 @Preview (showBackground = true)
 fun PreviewHomeScreen(){
-    HomeScreen()
+    HomeScreen(rememberNavController())
 }
